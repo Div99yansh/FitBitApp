@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Search, Plus, X } from "lucide-react";
 
 interface Meal {
@@ -562,6 +562,10 @@ export default function FitBitApp() {
     setIsModalOpen(false);
     setSelectedCategory(null);
   };
+
+  useEffect(() => {
+    console.log("dragged meal is : ", draggedMeal);
+  }, [draggedMeal]);
 
   return (
     <div className="min-h-screen bg-gray-900">

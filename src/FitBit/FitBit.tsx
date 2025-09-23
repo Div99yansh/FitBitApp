@@ -1,6 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect } from "react";
 import { Search, Plus, X } from "lucide-react";
+import axios from "axios";
 
 interface Meal {
   id: string;
@@ -490,6 +490,20 @@ export default function FitBitApp() {
       `;
       document.head.appendChild(style);
     }
+  }, []);
+
+  useEffect(() => {
+    const getMeals = async () => {
+      try {
+        const response = await axios.get(
+          "http://127.0.0.1:8000/fitbit/getMeals"
+        );
+        console.log("Meals are : ", response.data);
+      } catch (e) {
+        console.error("Error while getting meals", e);
+      }
+    };
+    getMeals();
   }, []);
 
   const handleDragStart = (meal: Meal) => {

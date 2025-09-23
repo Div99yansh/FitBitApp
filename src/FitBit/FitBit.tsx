@@ -5,8 +5,15 @@ import axios from "axios";
 interface Meal {
   id: string;
   name: string;
-  calories?: number;
-  protein?: number;
+  calories: number;
+  protein: number;
+  fats: number;
+  carbohydrates: number;
+  fiber: number;
+  sugar: number;
+  sodium: number;
+  created_at: string;
+  updated_at: string;
 }
 
 interface MealCategory {
@@ -18,20 +25,14 @@ interface MealCategory {
 interface AddMealModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddMeal: (meal: Omit<Meal, "id">) => void;
+  onAddMeal: (mealName: string) => void;
   categoryName: string;
 }
 
-const sampleMeals: Meal[] = [
-  { id: "1", name: "2 Chapati", calories: 240, protein: 8 },
-  { id: "2", name: "1 Bowl Dal", calories: 180, protein: 12 },
-  { id: "3", name: "1 Plate Upma", calories: 220, protein: 6 },
-  { id: "4", name: "Oatmeal Bowl", calories: 150, protein: 5 },
-  { id: "5", name: "Greek Yogurt", calories: 130, protein: 15 },
-  { id: "6", name: "Banana", calories: 105, protein: 1 },
-  { id: "7", name: "Grilled Chicken", calories: 280, protein: 30 },
-  { id: "8", name: "Brown Rice", calories: 220, protein: 5 },
-];
+interface ApiResponse {
+  meals: Meal[];
+  total_count: number;
+}
 
 const AddMealModal: React.FC<AddMealModalProps> = ({
   isOpen,
@@ -40,33 +41,21 @@ const AddMealModal: React.FC<AddMealModalProps> = ({
   categoryName,
 }) => {
   const [mealName, setMealName] = useState("");
-  const [calories, setCalories] = useState("");
-  const [protein, setProtein] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!mealName.trim()) return;
 
-    const newMeal = {
-      name: mealName.trim(),
-      calories: calories ? parseInt(calories) : undefined,
-      protein: protein ? parseFloat(protein) : undefined,
-    };
-
-    onAddMeal(newMeal);
+    onAddMeal(mealName.trim());
 
     // Reset form
     setMealName("");
-    setCalories("");
-    setProtein("");
     onClose();
   };
 
   const handleClose = () => {
     setMealName("");
-    setCalories("");
-    setProtein("");
     onClose();
   };
 
@@ -100,37 +89,6 @@ const AddMealModal: React.FC<AddMealModalProps> = ({
               className="w-full bg-gray-700 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-200"
               required
             />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Calories (optional)
-              </label>
-              <input
-                type="number"
-                value={calories}
-                onChange={(e) => setCalories(e.target.value)}
-                placeholder="150"
-                min="0"
-                className="w-full bg-gray-700 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-200"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Protein (g)
-              </label>
-              <input
-                type="number"
-                step="0.1"
-                value={protein}
-                onChange={(e) => setProtein(e.target.value)}
-                placeholder="5.5"
-                min="0"
-                className="w-full bg-gray-700 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-200"
-              />
-            </div>
           </div>
 
           <div className="flex gap-3 pt-4">
@@ -173,12 +131,12 @@ const MealItem: React.FC<{
         isFromList ? "border-l-4 border-blue-400" : "border border-gray-600"
       }`}
     >
-      <div className="font-medium text-white text-sm">{meal.name}</div>
-      {meal.calories && (
-        <div className="text-gray-300 text-xs mt-1">
-          {meal.calories} cal • {meal.protein}g protein
-        </div>
-      )}
+      <div className="font-medium text-white text-sm mb-2">{meal.name}</div>
+      <div className="text-gray-300 text-xs space-y-1">
+        {meal.calories} cal • {meal.protein}g protein • {meal.carbohydrates}g
+        carbohydrates • {meal.fats}g fats • {meal.fiber}g fiber • {meal.sugar}g
+        sugar • {meal.sodium}g sodium
+      </div>
     </div>
   );
 };
@@ -251,7 +209,7 @@ const MealCategory: React.FC<{
       <h3 className="text-white font-semibold text-lg mb-4">{category.name}</h3>
 
       {/* Meals Grid */}
-      <div className="grid grid-cols-2 gap-3 mb-4">
+      <div className="grid grid-cols-1 gap-3 mb-4">
         {category.meals.map((meal) => (
           <MealSlotComponent
             key={`${category.id}-${meal.id}`}
@@ -264,7 +222,7 @@ const MealCategory: React.FC<{
 
         {/* Drop zone when empty */}
         {category.meals.length === 0 && (
-          <div className="col-span-2 bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg p-8 flex items-center justify-center text-gray-400 text-sm hover:border-gray-500 transition-colors duration-200">
+          <div className="col-span-1 bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg p-8 flex items-center justify-center text-gray-400 text-sm hover:border-gray-500 transition-colors duration-200">
             Drop meals here
           </div>
         )}
@@ -313,7 +271,9 @@ export default function FitBitApp() {
     id: string;
     name: string;
   } | null>(null);
-  const [allMeals, setAllMeals] = useState<Meal[]>(sampleMeals);
+  const [allMeals, setAllMeals] = useState<Meal[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [mealCategories, setMealCategories] = useState<MealCategory[]>([
     {
       id: "breakfast",
@@ -492,15 +452,22 @@ export default function FitBitApp() {
     }
   }, []);
 
+  // Fetch meals from API
   useEffect(() => {
     const getMeals = async () => {
       try {
-        const response = await axios.get(
+        setLoading(true);
+        setError(null);
+        const response = await axios.get<ApiResponse>(
           "http://127.0.0.1:8000/fitbit/getMeals"
         );
         console.log("Meals are : ", response.data);
+        setAllMeals(response.data.meals);
       } catch (e) {
         console.error("Error while getting meals", e);
+        setError("Failed to load meals. Please try again later.");
+      } finally {
+        setLoading(false);
       }
     };
     getMeals();
@@ -547,28 +514,44 @@ export default function FitBitApp() {
     setIsModalOpen(true);
   };
 
-  const handleAddCustomMeal = (mealData: Omit<Meal, "id">) => {
-    const newMeal: Meal = {
-      id: Date.now().toString(),
-      ...mealData,
-    };
+  const handleAddCustomMeal = async (mealName: string) => {
+    try {
+      // Here you would typically make an API call to create the meal
+      // For now, we'll create a mock meal object
+      const newMeal: Meal = {
+        id: Date.now().toString(),
+        name: mealName,
+        calories: 0,
+        protein: 0,
+        fats: 0,
+        carbohydrates: 0,
+        fiber: 0,
+        sugar: 0,
+        sodium: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
 
-    // Add to all meals list
-    setAllMeals((prev) => [...prev, newMeal]);
+      // Add to all meals list
+      setAllMeals((prev) => [...prev, newMeal]);
 
-    // Add to selected category
-    if (selectedCategory) {
-      setMealCategories((prev) =>
-        prev.map((category) => {
-          if (category.id === selectedCategory.id) {
-            return {
-              ...category,
-              meals: [...category.meals, newMeal],
-            };
-          }
-          return category;
-        })
-      );
+      // Add to selected category
+      if (selectedCategory) {
+        setMealCategories((prev) =>
+          prev.map((category) => {
+            if (category.id === selectedCategory.id) {
+              return {
+                ...category,
+                meals: [...category.meals, newMeal],
+              };
+            }
+            return category;
+          })
+        );
+      }
+    } catch (error) {
+      console.error("Error adding custom meal:", error);
+      setError("Failed to add meal. Please try again.");
     }
   };
 
@@ -580,6 +563,30 @@ export default function FitBitApp() {
   useEffect(() => {
     console.log("dragged meal is : ", draggedMeal);
   }, [draggedMeal]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading meals...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-red-400 text-xl text-center">
+          <div className="mb-4">⚠️ {error}</div>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg transition-colors duration-200"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-900">
@@ -604,7 +611,7 @@ export default function FitBitApp() {
             <div className="meals-list-container">
               <div className="bg-gray-800 rounded-xl p-4">
                 <h2 className="text-white font-semibold text-lg mb-4">
-                  List of Meals
+                  List of Meals ({allMeals.length})
                 </h2>
                 <div className="relative mb-4">
                   <Search
@@ -658,7 +665,7 @@ export default function FitBitApp() {
           <div className="mobile-meals-list animate-fade-in">
             <div className="bg-gray-800 rounded-xl p-4">
               <h2 className="text-white font-semibold text-lg mb-4">
-                List of Meals
+                List of Meals ({allMeals.length})
               </h2>
               <div className="relative mb-4">
                 <Search

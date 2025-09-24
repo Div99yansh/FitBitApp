@@ -26,7 +26,6 @@ interface AddMealModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAddMeal: (mealName: string) => void;
-  categoryName: string;
 }
 
 interface ApiResponse {
@@ -38,7 +37,6 @@ const AddMealModal: React.FC<AddMealModalProps> = ({
   isOpen,
   onClose,
   onAddMeal,
-  categoryName,
 }) => {
   const [mealName, setMealName] = useState("");
 
@@ -65,9 +63,7 @@ const AddMealModal: React.FC<AddMealModalProps> = ({
     <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 animate-fade-in">
       <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md mx-4 animate-scale-in">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-white">
-            Add {categoryName} Item
-          </h2>
+          <h2 className="text-xl font-semibold text-white">Add New Meal</h2>
           <button
             onClick={handleClose}
             className="text-gray-400 hover:text-white transition-colors duration-200"
@@ -123,6 +119,21 @@ const MealItem: React.FC<{
     e.dataTransfer.setData("application/json", JSON.stringify(meal));
   };
 
+  const formatNutritionInfo = () => {
+    const parts = [];
+
+    parts.push(`${meal.calories} cal`);
+    parts.push(`${meal.protein}g protein`);
+    parts.push(`${meal.carbohydrates}g carbs`);
+    parts.push(`${meal.fats}g fats`);
+
+    if (meal.fiber > 0) parts.push(`${meal.fiber}g fiber`);
+    if (meal.sugar > 0) parts.push(`${meal.sugar}g sugar`);
+    if (meal.sodium > 0) parts.push(`${meal.sodium}mg sodium`);
+
+    return parts.join(" • ");
+  };
+
   return (
     <div
       draggable
@@ -132,11 +143,7 @@ const MealItem: React.FC<{
       }`}
     >
       <div className="font-medium text-white text-sm mb-2">{meal.name}</div>
-      <div className="text-gray-300 text-xs space-y-1">
-        {meal.calories} cal • {meal.protein}g protein • {meal.carbohydrates}g
-        carbohydrates • {meal.fats}g fats • {meal.fiber}g fiber • {meal.sugar}g
-        sugar • {meal.sodium}g sodium
-      </div>
+      <div className="text-gray-300 text-xs">{formatNutritionInfo()}</div>
     </div>
   );
 };
@@ -167,8 +174,7 @@ const MealCategory: React.FC<{
   onDropMeal: (categoryId: string, meal: Meal) => void;
   onRemoveMeal: (categoryId: string, mealId: string) => void;
   onDragStart: (meal: Meal) => void;
-  onAddMealClick: (categoryId: string, categoryName: string) => void;
-}> = ({ category, onDropMeal, onRemoveMeal, onDragStart, onAddMealClick }) => {
+}> = ({ category, onDropMeal, onRemoveMeal, onDragStart }) => {
   const [isDragOver, setIsDragOver] = useState(false);
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -227,14 +233,6 @@ const MealCategory: React.FC<{
           </div>
         )}
       </div>
-
-      <button
-        onClick={() => onAddMealClick(category.id, category.name)}
-        className="w-full bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
-      >
-        <Plus size={16} />
-        Add {category.name} if not in the list
-      </button>
     </div>
   );
 };
@@ -243,6 +241,7 @@ const MealList: React.FC<{
   meals: Meal[];
   searchTerm: string;
   onDragStart: (meal: Meal) => void;
+  onAddMealClick: () => void;
 }> = ({ meals, searchTerm, onDragStart }) => {
   const filteredMeals = meals.filter((meal) =>
     meal.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -267,10 +266,6 @@ export default function FitBitApp() {
   const [searchTerm, setSearchTerm] = useState("");
   const [draggedMeal, setDraggedMeal] = useState<Meal | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<{
-    id: string;
-    name: string;
-  } | null>(null);
   const [allMeals, setAllMeals] = useState<Meal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -509,8 +504,7 @@ export default function FitBitApp() {
     );
   };
 
-  const handleAddMealClick = (categoryId: string, categoryName: string) => {
-    setSelectedCategory({ id: categoryId, name: categoryName });
+  const handleAddMealClick = () => {
     setIsModalOpen(true);
   };
 
@@ -534,21 +528,6 @@ export default function FitBitApp() {
 
       // Add to all meals list
       setAllMeals((prev) => [...prev, newMeal]);
-
-      // Add to selected category
-      if (selectedCategory) {
-        setMealCategories((prev) =>
-          prev.map((category) => {
-            if (category.id === selectedCategory.id) {
-              return {
-                ...category,
-                meals: [...category.meals, newMeal],
-              };
-            }
-            return category;
-          })
-        );
-      }
     } catch (error) {
       console.error("Error adding custom meal:", error);
       setError("Failed to add meal. Please try again.");
@@ -557,7 +536,6 @@ export default function FitBitApp() {
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setSelectedCategory(null);
   };
 
   useEffect(() => {
@@ -628,12 +606,23 @@ export default function FitBitApp() {
                 </div>
 
                 {/* Meal List */}
-                <div className="meals-list-scrollable custom-scrollbar">
+                <div className="pb-4 meals-list-scrollable custom-scrollbar">
                   <MealList
                     meals={allMeals}
                     searchTerm={searchTerm}
                     onDragStart={handleDragStart}
+                    onAddMealClick={handleAddMealClick}
                   />
+                </div>
+                {/* Add Meal Button */}
+                <div className="relative mb-4">
+                  <button
+                    onClick={handleAddMealClick}
+                    className="absolute transform -translate-y-1/2 w-full bg-blue-600 hover:bg-blue-500 text-white text-sm py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2 mb-4"
+                  >
+                    <Plus size={16} />
+                    Add New Meal
+                  </button>
                 </div>
               </div>
             </div>
@@ -652,7 +641,6 @@ export default function FitBitApp() {
                   onDropMeal={handleDropMeal}
                   onRemoveMeal={handleRemoveMeal}
                   onDragStart={handleDragStart}
-                  onAddMealClick={handleAddMealClick}
                 />
               </div>
             ))}
@@ -687,6 +675,7 @@ export default function FitBitApp() {
                   meals={allMeals}
                   searchTerm={searchTerm}
                   onDragStart={handleDragStart}
+                  onAddMealClick={handleAddMealClick}
                 />
               </div>
             </div>
@@ -705,7 +694,6 @@ export default function FitBitApp() {
                   onDropMeal={handleDropMeal}
                   onRemoveMeal={handleRemoveMeal}
                   onDragStart={handleDragStart}
-                  onAddMealClick={handleAddMealClick}
                 />
               </div>
             ))}
@@ -718,7 +706,6 @@ export default function FitBitApp() {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onAddMeal={handleAddCustomMeal}
-        categoryName={selectedCategory?.name || ""}
       />
     </div>
   );

@@ -660,6 +660,50 @@ const AuthPage: React.FC = () => {
 };
 
 // ============================================================================
+// SNACKBAR COMPONENT
+// ============================================================================
+
+interface SnackbarProps {
+  message: string;
+  type: "success" | "error";
+  isVisible: boolean;
+  onClose: () => void;
+}
+
+const Snackbar: React.FC<SnackbarProps> = ({ message, type, isVisible, onClose }) => {
+  useEffect(() => {
+    if (isVisible) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible, onClose]);
+
+  if (!isVisible) return null;
+
+  return (
+    <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 animate-slide-up">
+      <div
+        className={`flex items-center gap-3 px-5 py-3 rounded-lg shadow-lg ${
+          type === "success"
+            ? "bg-green-600 text-white"
+            : "bg-red-600 text-white"
+        }`}
+      >
+        <span>{message}</span>
+        <button
+          onClick={onClose}
+          className="ml-2 hover:opacity-80 transition-opacity"
+        >
+          <X size={18} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
 // MEAL COMPONENTS
 // ============================================================================
 
@@ -805,6 +849,7 @@ const MealCategory: React.FC<{
   onDragStart: (meal: Meal) => void;
   onSaveMeals: (categoryId: string) => void;
   isSaving: boolean;
+  hasChanges: boolean;
 }> = ({
   category,
   onDropMeal,
@@ -812,6 +857,7 @@ const MealCategory: React.FC<{
   onDragStart,
   onSaveMeals,
   isSaving,
+  hasChanges,
 }) => {
   const [isDragOver, setIsDragOver] = useState(false);
 
@@ -852,9 +898,9 @@ const MealCategory: React.FC<{
         <h3 className="text-white font-semibold text-lg">{category.name}</h3>
         <button
           onClick={() => onSaveMeals(category.id)}
-          disabled={isSaving || category.meals.length === 0}
+          disabled={isSaving || !hasChanges}
           className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all duration-200 ${
-            category.meals.length === 0
+            !hasChanges
               ? "bg-gray-600 text-gray-400 cursor-not-allowed"
               : isSaving
               ? "bg-green-500 text-white cursor-wait"
@@ -892,7 +938,8 @@ const MealList: React.FC<{
   searchTerm: string;
   onDragStart: (meal: Meal) => void;
   onAddMealClick: () => void;
-}> = ({ meals, searchTerm, onDragStart, onAddMealClick }) => {
+  isAddingMeal?: boolean;
+}> = ({ meals, searchTerm, onDragStart, onAddMealClick, isAddingMeal = false }) => {
   const filteredMeals = meals.filter((meal) =>
     meal.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -906,6 +953,15 @@ const MealList: React.FC<{
         <Plus size={16} />
         Add New Meal
       </button>
+
+      {isAddingMeal && (
+        <div className="bg-gray-700 rounded-lg p-3 border-l-4 border-blue-400 animate-pulse">
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+            <span className="text-gray-300 text-sm">Adding new meal...</span>
+          </div>
+        </div>
+      )}
 
       {filteredMeals.map((meal, index) => (
         <div
@@ -936,11 +992,22 @@ const FitBitDashboard: React.FC = () => {
     new Date().toISOString().split("T")[0]
   );
   const [isSaving, setIsSaving] = useState(false);
+  const [isAddingMeal, setIsAddingMeal] = useState(false);
   const [mealCategories, setMealCategories] = useState<MealCategory[]>([
     { id: "breakfast", name: "Breakfast", meals: [] },
     { id: "lunch", name: "Lunch", meals: [] },
     { id: "dinner", name: "Dinner", meals: [] },
   ]);
+  const [originalMealCategories, setOriginalMealCategories] = useState<MealCategory[]>([
+    { id: "breakfast", name: "Breakfast", meals: [] },
+    { id: "lunch", name: "Lunch", meals: [] },
+    { id: "dinner", name: "Dinner", meals: [] },
+  ]);
+  const [snackbar, setSnackbar] = useState<{
+    message: string;
+    type: "success" | "error";
+    isVisible: boolean;
+  }>({ message: "", type: "success", isVisible: false });
 
   // Inject styles
   useEffect(() => {
@@ -1014,6 +1081,13 @@ const FitBitDashboard: React.FC = () => {
         @keyframes scaleIn {
           to { transform: scale(1); opacity: 1; }
         }
+        @keyframes slideUp {
+          from { opacity: 0; transform: translate(-50%, 20px); }
+          to { opacity: 1; transform: translate(-50%, 0); }
+        }
+        .animate-slide-up {
+          animation: slideUp 0.3s ease-out forwards;
+        }
         @media (max-width: 1024px) {
           .meals-list-container {
             position: relative;
@@ -1059,18 +1133,22 @@ const FitBitDashboard: React.FC = () => {
         );
         console.log("Meals for selected date:", data);
 
-        setMealCategories([
+        const categories = [
           { id: "breakfast", name: "Breakfast", meals: data.breakfast || [] },
           { id: "lunch", name: "Lunch", meals: data.lunch || [] },
           { id: "dinner", name: "Dinner", meals: data.dinner || [] },
-        ]);
+        ];
+        setMealCategories(categories);
+        setOriginalMealCategories(JSON.parse(JSON.stringify(categories)));
       } catch (e) {
         console.error("Error fetching day meals:", e);
-        setMealCategories([
+        const emptyCategories = [
           { id: "breakfast", name: "Breakfast", meals: [] },
           { id: "lunch", name: "Lunch", meals: [] },
           { id: "dinner", name: "Dinner", meals: [] },
-        ]);
+        ];
+        setMealCategories(emptyCategories);
+        setOriginalMealCategories(JSON.parse(JSON.stringify(emptyCategories)));
       }
     };
 
@@ -1083,6 +1161,20 @@ const FitBitDashboard: React.FC = () => {
     console.log("Prev dragged meal : ", draggedMeal);
 
     setDraggedMeal(meal);
+  };
+
+  const hasCategoryChanges = (categoryId: string): boolean => {
+    const currentCategory = mealCategories.find((cat) => cat.id === categoryId);
+    const originalCategory = originalMealCategories.find((cat) => cat.id === categoryId);
+
+    if (!currentCategory || !originalCategory) return false;
+
+    if (currentCategory.meals.length !== originalCategory.meals.length) return true;
+
+    const currentMealIds = currentCategory.meals.map((m) => m.id).sort();
+    const originalMealIds = originalCategory.meals.map((m) => m.id).sort();
+
+    return JSON.stringify(currentMealIds) !== JSON.stringify(originalMealIds);
   };
 
   const handleDropMeal = (categoryId: string, meal: Meal) => {
@@ -1118,24 +1210,14 @@ const FitBitDashboard: React.FC = () => {
 
   const handleSaveMeals = async (categoryId: string) => {
     const category = mealCategories.find((cat) => cat.id === categoryId);
-    if (!category || category.meals.length === 0) return;
+    if (!category) return;
 
     try {
       setIsSaving(true);
       const payload = {
         date: selectedDate,
         mealType: categoryId,
-        meals: category.meals.map((meal) => ({
-          id: meal.id.split("-")[0],
-          name: meal.name,
-          calories: meal.calories,
-          protein: meal.protein,
-          fats: meal.fats,
-          carbohydrates: meal.carbohydrates,
-          fiber: meal.fiber,
-          sugar: meal.sugar,
-          sodium: meal.sodium,
-        })),
+        mealIds: category.meals.map((meal) => meal.id),
       };
 
       await apiCall(
@@ -1147,11 +1229,28 @@ const FitBitDashboard: React.FC = () => {
         token
       );
 
+      // Update original state to reflect saved state
+      setOriginalMealCategories((prev) =>
+        prev.map((cat) =>
+          cat.id === categoryId
+            ? { ...cat, meals: JSON.parse(JSON.stringify(category.meals)) }
+            : cat
+        )
+      );
+
       console.log(`${category.name} saved successfully for ${selectedDate}`);
-      alert(`${category.name} saved successfully!`);
+      setSnackbar({
+        message: `${category.name} saved successfully!`,
+        type: "success",
+        isVisible: true,
+      });
     } catch (error) {
       console.error(`Error saving ${category?.name}:`, error);
-      alert(`Failed to save ${category?.name}. Please try again.`);
+      setSnackbar({
+        message: `Failed to save ${category?.name}. Please try again.`,
+        type: "error",
+        isVisible: true,
+      });
     } finally {
       setIsSaving(false);
     }
@@ -1159,6 +1258,7 @@ const FitBitDashboard: React.FC = () => {
 
   const handleAddCustomMeal = async (mealName: string) => {
     try {
+      setIsAddingMeal(true);
       const data = await apiCall(
         "/fitbit/addUserMeal",
         {
@@ -1172,6 +1272,8 @@ const FitBitDashboard: React.FC = () => {
     } catch (error) {
       console.error("Error adding custom meal:", error);
       setError("Failed to add meal. Please try again.");
+    } finally {
+      setIsAddingMeal(false);
     }
   };
 
@@ -1256,6 +1358,7 @@ const FitBitDashboard: React.FC = () => {
                     searchTerm={searchTerm}
                     onDragStart={handleDragStart}
                     onAddMealClick={() => setIsModalOpen(true)}
+                    isAddingMeal={isAddingMeal}
                   />
                 </div>
               </div>
@@ -1276,6 +1379,7 @@ const FitBitDashboard: React.FC = () => {
                   onDragStart={handleDragStart}
                   onSaveMeals={handleSaveMeals}
                   isSaving={isSaving}
+                  hasChanges={hasCategoryChanges(category.id)}
                 />
               </div>
             ))}
@@ -1308,6 +1412,7 @@ const FitBitDashboard: React.FC = () => {
                   searchTerm={searchTerm}
                   onDragStart={handleDragStart}
                   onAddMealClick={() => setIsModalOpen(true)}
+                  isAddingMeal={isAddingMeal}
                 />
               </div>
             </div>
@@ -1326,6 +1431,7 @@ const FitBitDashboard: React.FC = () => {
                 onDragStart={handleDragStart}
                 onSaveMeals={handleSaveMeals}
                 isSaving={isSaving}
+                hasChanges={hasCategoryChanges(category.id)}
               />
             </div>
           ))}
@@ -1336,6 +1442,13 @@ const FitBitDashboard: React.FC = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onAddMeal={handleAddCustomMeal}
+      />
+
+      <Snackbar
+        message={snackbar.message}
+        type={snackbar.type}
+        isVisible={snackbar.isVisible}
+        onClose={() => setSnackbar((prev) => ({ ...prev, isVisible: false }))}
       />
     </div>
   );

@@ -1,5 +1,6 @@
 import React from "react";
-import { Calendar, LogOut, User as UserIcon } from "lucide-react";
+import { LogOut, User as UserIcon } from "lucide-react";
+import { DatePicker } from "../ui/DatePicker";
 import type { DashboardHeaderProps } from "../../types";
 
 export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
@@ -7,12 +8,15 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   selectedDate,
   onDateChange,
   onLogout,
+  tabs,
+  activeTab,
+  onTabChange,
 }) => {
   return (
     <div className="app-header">
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
             <div className="text-left">
               <h1 className="text-3xl font-bold text-white mb-1">FitBit</h1>
               <div className="w-24 h-1 bg-blue-400 rounded-full"></div>
@@ -21,18 +25,25 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               <UserIcon size={16} />
               <span>{user?.name}</span>
             </div>
+            <div className="flex gap-1 bg-gray-800 p-1 rounded-lg">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => onTabChange(tab.id)}
+                  className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
+                    activeTab === tab.id
+                      ? "bg-blue-600 text-white"
+                      : "text-gray-400 hover:text-white hover:bg-gray-700"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 bg-gray-800 px-4 py-2 rounded-lg">
-              <Calendar className="text-blue-400" size={20} />
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => onDateChange(e.target.value)}
-                className="bg-gray-700 text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-200 cursor-pointer"
-              />
-            </div>
+            <DatePicker value={selectedDate} onChange={onDateChange} />
 
             <button
               onClick={onLogout}

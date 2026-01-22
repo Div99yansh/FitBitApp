@@ -109,6 +109,9 @@ export interface DashboardHeaderProps {
   selectedDate: string;
   onDateChange: (date: string) => void;
   onLogout: () => void;
+  tabs: Tab[];
+  activeTab: TabId;
+  onTabChange: (tabId: TabId) => void;
 }
 
 export interface DashboardSidebarProps {
@@ -118,5 +121,107 @@ export interface DashboardSidebarProps {
   onDragStart: (meal: Meal) => void;
   onAddMealClick: () => void;
   isAddingMeal: boolean;
+  isMobile?: boolean;
+}
+
+// Tab Types
+export type TabId = "dashboard" | "meals" | "workout";
+
+export interface Tab {
+  id: TabId;
+  label: string;
+}
+
+export interface DashboardTabsProps {
+  activeTab: TabId;
+  onTabChange: (tabId: TabId) => void;
+  tabs: Tab[];
+}
+
+export interface MealsTabProps {
+  token: string | null;
+  selectedDate: string;
+  onShowSnackbar: (message: string, type: "success" | "error") => void;
+}
+
+export interface WorkoutTabProps {
+  token: string | null;
+  selectedDate: string;
+  onShowSnackbar: (message: string, type: "success" | "error") => void;
+}
+
+// Workout Types
+export interface Workout {
+  id: string;
+  name: string;
+  reps: number;
+  duration: number;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WorkoutCategory {
+  id: string;
+  name: string;
+  workouts: Workout[];
+}
+
+export interface DayWorkoutsResponse {
+  date: string;
+  upperBody: Workout[];
+  lowerBody: Workout[];
+  core: Workout[];
+  fullBody: Workout[];
+}
+
+export interface AddWorkoutModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onAddWorkout: (name: string, reps: number, duration: number) => void;
+}
+
+export interface WorkoutItemProps {
+  workout: Workout;
+  onDragStart: (workout: Workout) => void;
+  isFromList?: boolean;
+}
+
+export interface WorkoutSlotProps {
+  workout: Workout;
+  categoryId: string;
+  onRemoveWorkout: (categoryId: string, workoutId: string) => void;
+  onDragStart: (workout: Workout) => void;
+}
+
+export interface DropWorkoutResult {
+  success: boolean;
+  message: string;
+}
+
+export interface WorkoutCategoryProps {
+  category: WorkoutCategory;
+  onDropWorkout: (categoryId: string, workout: Workout) => DropWorkoutResult;
+  onRemoveWorkout: (categoryId: string, workoutId: string) => void;
+  onDragStart: (workout: Workout) => void;
+  onSaveWorkouts: (categoryId: string) => void;
+  isSaving: boolean;
+  hasChanges: boolean;
+}
+
+export interface WorkoutListProps {
+  workouts: Workout[];
+  searchTerm: string;
+  onDragStart: (workout: Workout) => void;
+  isAddingWorkout?: boolean;
+}
+
+export interface WorkoutSidebarProps {
+  workouts: Workout[];
+  searchTerm: string;
+  onSearchChange: (term: string) => void;
+  onDragStart: (workout: Workout) => void;
+  onAddWorkoutClick: () => void;
+  isAddingWorkout: boolean;
   isMobile?: boolean;
 }

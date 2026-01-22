@@ -937,23 +937,14 @@ const MealList: React.FC<{
   meals: Meal[];
   searchTerm: string;
   onDragStart: (meal: Meal) => void;
-  onAddMealClick: () => void;
   isAddingMeal?: boolean;
-}> = ({ meals, searchTerm, onDragStart, onAddMealClick, isAddingMeal = false }) => {
+}> = ({ meals, searchTerm, onDragStart, isAddingMeal = false }) => {
   const filteredMeals = meals.filter((meal) =>
     meal.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <div className="space-y-3">
-      <button
-        onClick={onAddMealClick}
-        className="w-full bg-blue-600 hover:bg-blue-500 text-white text-sm py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2 mb-4"
-      >
-        <Plus size={16} />
-        Add New Meal
-      </button>
-
       {isAddingMeal && (
         <div className="bg-gray-700 rounded-lg p-3 border-l-4 border-blue-400 animate-pulse">
           <div className="flex items-center gap-3">
@@ -1055,7 +1046,11 @@ const FitBitDashboard: React.FC = () => {
           height: calc(100vh - 8rem);
         }
         .meals-list-scrollable {
-          height: calc(100vh - 18rem);
+          height: 300px;
+          overflow-y: auto;
+        }
+        .meals-list-scrollable-desktop {
+          height: calc(100vh - 22rem);
           overflow-y: auto;
         }
         .app-header {
@@ -1094,7 +1089,7 @@ const FitBitDashboard: React.FC = () => {
             height: auto;
             top: 0;
           }
-          .meals-list-scrollable {
+          .meals-list-scrollable-desktop {
             height: 300px;
           }
         }
@@ -1334,7 +1329,7 @@ const FitBitDashboard: React.FC = () => {
         <div className="hidden lg:grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-1 animate-slide-in-left">
             <div className="meals-list-container">
-              <div className="bg-gray-800 rounded-xl p-4">
+              <div className="bg-gray-800 rounded-xl p-4 flex flex-col h-full">
                 <h2 className="text-white font-semibold text-lg mb-4">
                   My Meals ({allMeals.length})
                 </h2>
@@ -1352,15 +1347,22 @@ const FitBitDashboard: React.FC = () => {
                   />
                 </div>
 
-                <div className="meals-list-scrollable custom-scrollbar">
+                <div className="meals-list-scrollable-desktop custom-scrollbar flex-1 overflow-y-auto">
                   <MealList
                     meals={allMeals}
                     searchTerm={searchTerm}
                     onDragStart={handleDragStart}
-                    onAddMealClick={() => setIsModalOpen(true)}
                     isAddingMeal={isAddingMeal}
                   />
                 </div>
+
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="w-full bg-blue-600 hover:bg-blue-500 text-white text-sm py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2 mt-4 flex-shrink-0"
+                >
+                  <Plus size={16} />
+                  Add New Meal
+                </button>
               </div>
             </div>
           </div>
@@ -1411,10 +1413,17 @@ const FitBitDashboard: React.FC = () => {
                   meals={allMeals}
                   searchTerm={searchTerm}
                   onDragStart={handleDragStart}
-                  onAddMealClick={() => setIsModalOpen(true)}
                   isAddingMeal={isAddingMeal}
                 />
               </div>
+
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="w-full bg-blue-600 hover:bg-blue-500 text-white text-sm py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2 mt-4"
+              >
+                <Plus size={16} />
+                Add New Meal
+              </button>
             </div>
           </div>
 

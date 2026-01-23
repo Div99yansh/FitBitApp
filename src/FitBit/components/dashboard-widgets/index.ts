@@ -5,7 +5,7 @@ export { MealDistributionChart } from "./MealDistributionChart";
 export { WorkoutDistributionChart } from "./WorkoutDistributionChart";
 export { WorkoutTimeline } from "./WorkoutTimeline";
 export { WorkoutSummarySection } from "./WorkoutSummarySection";
-export { AIChatbotPlaceholder } from "./AIChatbotPlaceholder";
+export { DailyInsightsPlaceholder } from "./DailyInsightsPlaceholder";
 export { DailyProgressSection } from "./DailyProgressSection";
 export { NutritionOverviewSection } from "./NutritionOverviewSection";
 export { WorkoutBreakdownSection } from "./WorkoutBreakdownSection";

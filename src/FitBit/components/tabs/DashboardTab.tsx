@@ -7,7 +7,7 @@ import {
   MealDistributionChart,
   WorkoutBreakdownSection,
   WorkoutSummarySection,
-  AIChatbotPlaceholder,
+  DailyInsightsPlaceholder,
 } from "../dashboard-widgets";
 import { Loader2 } from "lucide-react";
 
@@ -102,14 +102,14 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
           </section>
         </div>
 
-        {/* AI Chatbot Sidebar - Fixed position */}
+        {/* Daily Insights Sidebar - Fixed position */}
         <div className="hidden lg:block fixed right-6 top-[100px] w-[280px] h-[calc(100vh-120px)] z-20">
-          <AIChatbotPlaceholder />
+          <DailyInsightsPlaceholder />
         </div>
 
-        {/* Mobile: Show chatbot at bottom */}
+        {/* Mobile: Show insights at bottom */}
         <div className="lg:hidden">
-          <AIChatbotPlaceholder />
+          <DailyInsightsPlaceholder />
         </div>
       </div>
     </div>

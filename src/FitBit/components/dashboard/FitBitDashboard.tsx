@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context";
-import { useSnackbar } from "../../hooks";
+import { useSnackbar, useAIChat, useDashboardSummary } from "../../hooks";
 import { injectStyles } from "../../styles/animations";
 import { DashboardHeader } from "./DashboardHeader";
 import { DashboardTab, MealsTab, WorkoutTab } from "../tabs";
 import { Snackbar } from "../ui";
+import { AIChatLauncher, AIChatOverlay } from "../chat";
 import type { Tab, TabId } from "../../types";
 
 const tabs: Tab[] = [
@@ -20,6 +21,17 @@ export const FitBitDashboard: React.FC = () => {
     new Date().toISOString().split("T")[0]
   );
   const { snackbar, showSnackbar, hideSnackbar } = useSnackbar();
+
+  // Chat state
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const { summary } = useDashboardSummary(selectedDate, token);
+  const { messages, isLoading: isChatLoading, sendMessage } = useAIChat(token);
+
+  const handleSendMessage = (question: string) => {
+    if (user?.id) {
+      sendMessage(question, user.id, selectedDate, summary);
+    }
+  };
 
   useEffect(() => {
     injectStyles();
@@ -64,6 +76,16 @@ export const FitBitDashboard: React.FC = () => {
         type={snackbar.type}
         isVisible={snackbar.isVisible}
         onClose={hideSnackbar}
+      />
+
+      {/* AI Chat */}
+      <AIChatLauncher onClick={() => setIsChatOpen(true)} />
+      <AIChatOverlay
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        messages={messages}
+        isLoading={isChatLoading}
+        onSendMessage={handleSendMessage}
       />
     </div>
   );

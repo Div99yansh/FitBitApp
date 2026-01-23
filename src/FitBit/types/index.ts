@@ -281,3 +281,22 @@ export interface DashboardTabProps {
   token: string | null;
   selectedDate: string;
 }
+
+// Chat Types
+export interface ChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  timestamp: Date;
+}
+
+export interface ChatAskPayload {
+  userId: string;
+  date: string;
+  dailySummary: DailySummary;
+  question: string;
+}
+
+export interface ChatAskResponse {
+  answer: string;
+}

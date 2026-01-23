@@ -6,6 +6,20 @@ interface DatePickerProps {
   onChange: (date: string) => void;
 }
 
+// Parse YYYY-MM-DD string as local date (not UTC)
+const parseLocalDate = (dateStr: string): Date => {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  return new Date(year, month - 1, day);
+};
+
+// Format date to YYYY-MM-DD without timezone issues
+const formatDateString = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = [
   "January",
@@ -25,12 +39,12 @@ const MONTHS = [
 export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [viewDate, setViewDate] = useState(() => {
-    const date = value ? new Date(value) : new Date();
+    const date = value ? parseLocalDate(value) : new Date();
     return { month: date.getMonth(), year: date.getFullYear() };
   });
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const selectedDate = value ? new Date(value) : null;
+  const selectedDate = value ? parseLocalDate(value) : null;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -50,7 +64,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange }) => {
 
   useEffect(() => {
     if (value) {
-      const date = new Date(value);
+      const date = parseLocalDate(value);
       setViewDate({ month: date.getMonth(), year: date.getFullYear() });
     }
   }, [value]);
@@ -83,13 +97,13 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange }) => {
 
   const handleDateSelect = (day: number) => {
     const date = new Date(viewDate.year, viewDate.month, day);
-    const formatted = date.toISOString().split("T")[0];
+    const formatted = formatDateString(date);
     onChange(formatted);
     setIsOpen(false);
   };
 
   const handleTodayClick = () => {
-    const formatted = new Date().toISOString().split("T")[0];
+    const formatted = formatDateString(new Date());
     onChange(formatted);
     setIsOpen(false);
   };
@@ -134,7 +148,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange }) => {
   };
 
   const formatDisplayDate = (dateStr: string) => {
-    const date = new Date(dateStr);
+    const date = parseLocalDate(dateStr);
     return date.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",

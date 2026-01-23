@@ -31,22 +31,39 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   return (
-    <div className="flex items-center gap-3 p-4 border-t border-gray-700 bg-gray-800">
-      <input
-        type="text"
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder={placeholder}
-        disabled={isDisabled}
-        className="flex-1 bg-gray-700 text-white text-sm px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
-      />
+    <div className="flex items-center gap-3 p-4">
+      <div className="flex-1 relative">
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          disabled={isDisabled}
+          className="w-full bg-gray-700/50 backdrop-blur-sm text-white text-sm px-4 py-3.5 rounded-xl border border-white/5 outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 placeholder-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+        />
+      </div>
       <button
         onClick={handleSend}
         disabled={isDisabled || !input.trim()}
-        className="w-10 h-10 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-xl flex items-center justify-center transition-colors"
+        className="relative w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed group"
       >
-        <Send size={18} className="text-white" />
+        {/* Button background */}
+        <div
+          className={`absolute inset-0 rounded-xl transition-all duration-200 ${
+            input.trim() && !isDisabled
+              ? "bg-gradient-to-br from-blue-500 to-violet-600 shadow-lg shadow-blue-500/30"
+              : "bg-gray-700/50"
+          }`}
+        />
+        <Send
+          size={18}
+          className={`relative transition-all duration-200 ${
+            input.trim() && !isDisabled
+              ? "text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+              : "text-gray-500"
+          }`}
+        />
       </button>
     </div>
   );

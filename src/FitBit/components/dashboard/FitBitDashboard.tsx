@@ -38,7 +38,9 @@ export const FitBitDashboard: React.FC = () => {
       />
 
       <div className="main-content max-w-7xl mx-auto px-6">
-        {activeTab === "dashboard" && <DashboardTab />}
+        {activeTab === "dashboard" && (
+          <DashboardTab token={token} selectedDate={selectedDate} />
+        )}
 
         {activeTab === "meals" && (
           <MealsTab

@@ -225,3 +225,59 @@ export interface WorkoutSidebarProps {
   isAddingWorkout: boolean;
   isMobile?: boolean;
 }
+
+// Dashboard Types
+export interface MealBreakdown {
+  count: number;
+  calories: number;
+}
+
+export interface WorkoutBreakdown {
+  count: number;
+  reps: number;
+  duration: number;
+}
+
+export interface DailySummary {
+  // Nutrition totals
+  totalCalories: number;
+  totalProtein: number;
+  totalCarbs: number;
+  totalFats: number;
+  totalFiber: number;
+  totalSugar: number;
+  totalSodium: number;
+
+  // Meal breakdown
+  mealBreakdown: {
+    breakfast: MealBreakdown;
+    lunch: MealBreakdown;
+    dinner: MealBreakdown;
+  };
+
+  // Workout totals
+  totalWorkouts: number;
+  totalReps: number;
+  totalDuration: number;
+
+  // Workout breakdown by muscle group
+  workoutBreakdown: {
+    upperBody: WorkoutBreakdown;
+    lowerBody: WorkoutBreakdown;
+    core: WorkoutBreakdown;
+    fullBody: WorkoutBreakdown;
+  };
+
+  // All workouts for timeline
+  allWorkouts: Array<Workout & { category: string }>;
+}
+
+export interface DailyGoals {
+  calorieGoal: number;
+  workoutMinutesGoal: number;
+}
+
+export interface DashboardTabProps {
+  token: string | null;
+  selectedDate: string;
+}

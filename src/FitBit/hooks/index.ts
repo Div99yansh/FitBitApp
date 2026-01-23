@@ -5,3 +5,4 @@ export { useDayMeals } from "./useDayMeals";
 export { useWorkouts } from "./useWorkouts";
 export { useDayWorkouts } from "./useDayWorkouts";
 export { useWorkoutDragDrop } from "./useWorkoutDragDrop";
+export { useDashboardSummary } from "./useDashboardSummary";

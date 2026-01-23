@@ -1,0 +1,11 @@
+export { SemiCircularGauge } from "./SemiCircularGauge";
+export { NutritionStatCard } from "./NutritionStatCard";
+export { MacroBreakdownChart } from "./MacroBreakdownChart";
+export { MealDistributionChart } from "./MealDistributionChart";
+export { WorkoutDistributionChart } from "./WorkoutDistributionChart";
+export { WorkoutTimeline } from "./WorkoutTimeline";
+export { WorkoutSummarySection } from "./WorkoutSummarySection";
+export { AIChatbotPlaceholder } from "./AIChatbotPlaceholder";
+export { DailyProgressSection } from "./DailyProgressSection";
+export { NutritionOverviewSection } from "./NutritionOverviewSection";
+export { WorkoutBreakdownSection } from "./WorkoutBreakdownSection";

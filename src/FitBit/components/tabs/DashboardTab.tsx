@@ -37,7 +37,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
     <div className="animate-fade-in relative">
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Main Dashboard Area - scrollable content */}
-        <div className="flex-1 lg:pr-[300px] space-y-6 pb-10">
+        <div className="flex-1 xl:pr-[300px] space-y-6 pb-10">
           {/* Daily Progress Section - Hero */}
           <section>
             <h2 className="text-white font-semibold text-lg mb-4">
@@ -102,13 +102,13 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
           </section>
         </div>
 
-        {/* Daily Insights Sidebar - Fixed position */}
-        <div className="hidden lg:block fixed right-6 top-[100px] w-[280px] h-[calc(100vh-120px)] z-20">
+        {/* Daily Insights Sidebar - Fixed position on xl+ screens */}
+        <div className="hidden xl:block fixed right-6 top-[100px] w-[280px] h-[calc(100vh-120px)] z-20">
           <DailyInsightsPlaceholder />
         </div>
 
-        {/* Mobile: Show insights at bottom */}
-        <div className="lg:hidden">
+        {/* Mobile/Tablet: Show insights at bottom */}
+        <div className="xl:hidden">
           <DailyInsightsPlaceholder />
         </div>
       </div>

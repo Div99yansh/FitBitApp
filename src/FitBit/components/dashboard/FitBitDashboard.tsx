@@ -4,7 +4,7 @@ import { useSnackbar, useAIChat, useDashboardSummary } from "../../hooks";
 import { injectStyles } from "../../styles/animations";
 import { DashboardHeader } from "./DashboardHeader";
 import { DashboardTab, MealsTab, WorkoutTab } from "../tabs";
-import { Snackbar } from "../ui";
+import { Snackbar, MobileTabBar } from "../ui";
 import { AIChatLauncher, AIChatOverlay } from "../chat";
 import type { Tab, TabId } from "../../types";
 
@@ -49,7 +49,7 @@ export const FitBitDashboard: React.FC = () => {
         onTabChange={setActiveTab}
       />
 
-      <div className="main-content max-w-7xl mx-auto px-6">
+      <div className="main-content max-w-7xl mx-auto px-4 sm:px-6 pb-20 lg:pb-0">
         {activeTab === "dashboard" && (
           <DashboardTab token={token} selectedDate={selectedDate} />
         )}
@@ -70,6 +70,13 @@ export const FitBitDashboard: React.FC = () => {
           />
         )}
       </div>
+
+      {/* Mobile Tab Bar - visible only on screens < lg */}
+      <MobileTabBar
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
 
       <Snackbar
         message={snackbar.message}

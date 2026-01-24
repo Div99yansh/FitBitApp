@@ -1,51 +1,74 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
+import { useDroppable } from "@dnd-kit/core";
 import { Save } from "lucide-react";
-import type { WorkoutCategoryProps } from "../../types";
+import type { WorkoutCategoryProps, Workout } from "../../types";
 import { WorkoutSlot } from "./WorkoutSlot";
 
 export const WorkoutCategory: React.FC<WorkoutCategoryProps> = ({
   category,
   onDropWorkout,
   onRemoveWorkout,
-  onDragStart,
   onSaveWorkouts,
   isSaving,
   hasChanges,
 }) => {
-  const [isDragOver, setIsDragOver] = useState(false);
+  const [isNativeDragOver, setIsNativeDragOver] = useState(false);
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const { isOver, setNodeRef } = useDroppable({
+    id: `workout-category-${category.id}`,
+    data: { categoryId: category.id, type: "workout-category" },
+  });
+
+  // Native HTML5 drag handlers for desktop
+  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    setIsDragOver(true);
-  };
+    e.dataTransfer.dropEffect = "move";
+  }, []);
 
-  const handleDragLeave = (e: React.DragEvent) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX;
-    const y = e.clientY;
-    if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
-      setIsDragOver(false);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDragEnter = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    setIsDragOver(false);
-    const workoutData = e.dataTransfer.getData("application/json");
-    if (workoutData) {
-      const workout = JSON.parse(workoutData);
-      onDropWorkout(category.id, workout);
+    setIsNativeDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    // Only set to false if we're leaving the container (not entering a child)
+    const relatedTarget = e.relatedTarget as Node | null;
+    if (!e.currentTarget.contains(relatedTarget)) {
+      setIsNativeDragOver(false);
     }
-  };
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      setIsNativeDragOver(false);
+
+      const workoutData = e.dataTransfer.getData("application/json");
+      if (workoutData) {
+        try {
+          const workout = JSON.parse(workoutData) as Workout;
+          onDropWorkout(category.id, workout);
+        } catch (err) {
+          console.error("Failed to parse workout data:", err);
+        }
+      }
+    },
+    [category.id, onDropWorkout]
+  );
+
+  // Combine both dnd-kit and native drag states for visual feedback
+  const isDragOver = isOver || isNativeDragOver;
 
   return (
     <div
+      ref={setNodeRef}
+      onDragOver={handleDragOver}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
       className={`bg-gray-800 rounded-xl p-4 transition-all duration-300 min-h-[200px] relative ${
         isDragOver ? "ring-2 ring-blue-400 bg-gray-700" : ""
       }`}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
     >
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-white font-semibold text-lg">{category.name}</h3>
@@ -72,13 +95,12 @@ export const WorkoutCategory: React.FC<WorkoutCategoryProps> = ({
             workout={workout}
             categoryId={category.id}
             onRemoveWorkout={onRemoveWorkout}
-            onDragStart={onDragStart}
           />
         ))}
 
         {category.workouts.length === 0 && (
           <div className="col-span-1 bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg p-8 flex items-center justify-center text-gray-400 text-sm hover:border-gray-500 transition-colors duration-200">
-            Drop workouts here
+            {isDragOver ? "Drop here!" : "Drop workouts here"}
           </div>
         )}
       </div>

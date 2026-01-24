@@ -7,7 +7,7 @@ interface AIChatLauncherProps {
 
 export const AIChatLauncher: React.FC<AIChatLauncherProps> = ({ onClick }) => {
   return (
-    <div className="fixed bottom-6 right-6 z-40">
+    <div className="fixed bottom-20 lg:bottom-6 right-4 lg:right-6 z-40">
       {/* Pulse ring effect */}
       <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500 to-violet-500 chat-launcher-ring" />
 

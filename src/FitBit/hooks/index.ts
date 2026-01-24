@@ -7,3 +7,5 @@ export { useDayWorkouts } from "./useDayWorkouts";
 export { useWorkoutDragDrop } from "./useWorkoutDragDrop";
 export { useDashboardSummary } from "./useDashboardSummary";
 export { useAIChat } from "./useAIChat";
+export { useDndSensors } from "./useDndSensors";
+export { useIsTouchDevice } from "./useIsTouchDevice";

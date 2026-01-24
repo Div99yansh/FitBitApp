@@ -79,7 +79,6 @@ export interface MealSlotProps {
   meal: Meal;
   categoryId: string;
   onRemoveMeal: (categoryId: string, mealId: string) => void;
-  onDragStart: (meal: Meal) => void;
 }
 
 export interface DropMealResult {
@@ -91,7 +90,6 @@ export interface MealCategoryProps {
   category: MealCategory;
   onDropMeal: (categoryId: string, meal: Meal) => DropMealResult;
   onRemoveMeal: (categoryId: string, mealId: string) => void;
-  onDragStart: (meal: Meal) => void;
   onSaveMeals: (categoryId: string) => void;
   isSaving: boolean;
   hasChanges: boolean;
@@ -191,7 +189,6 @@ export interface WorkoutSlotProps {
   workout: Workout;
   categoryId: string;
   onRemoveWorkout: (categoryId: string, workoutId: string) => void;
-  onDragStart: (workout: Workout) => void;
 }
 
 export interface DropWorkoutResult {
@@ -203,7 +200,6 @@ export interface WorkoutCategoryProps {
   category: WorkoutCategory;
   onDropWorkout: (categoryId: string, workout: Workout) => DropWorkoutResult;
   onRemoveWorkout: (categoryId: string, workoutId: string) => void;
-  onDragStart: (workout: Workout) => void;
   onSaveWorkouts: (categoryId: string) => void;
   isSaving: boolean;
   hasChanges: boolean;

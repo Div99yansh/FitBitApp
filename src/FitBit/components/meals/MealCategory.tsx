@@ -1,51 +1,74 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
+import { useDroppable } from "@dnd-kit/core";
 import { Save } from "lucide-react";
-import type { MealCategoryProps } from "../../types";
+import type { MealCategoryProps, Meal } from "../../types";
 import { MealSlot } from "./MealSlot";
 
 export const MealCategory: React.FC<MealCategoryProps> = ({
   category,
   onDropMeal,
   onRemoveMeal,
-  onDragStart,
   onSaveMeals,
   isSaving,
   hasChanges,
 }) => {
-  const [isDragOver, setIsDragOver] = useState(false);
+  const [isNativeDragOver, setIsNativeDragOver] = useState(false);
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const { isOver, setNodeRef } = useDroppable({
+    id: `meal-category-${category.id}`,
+    data: { categoryId: category.id, type: "meal-category" },
+  });
+
+  // Native HTML5 drag handlers for desktop
+  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    setIsDragOver(true);
-  };
+    e.dataTransfer.dropEffect = "move";
+  }, []);
 
-  const handleDragLeave = (e: React.DragEvent) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX;
-    const y = e.clientY;
-    if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
-      setIsDragOver(false);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDragEnter = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    setIsDragOver(false);
-    const mealData = e.dataTransfer.getData("application/json");
-    if (mealData) {
-      const meal = JSON.parse(mealData);
-      onDropMeal(category.id, meal);
+    setIsNativeDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    // Only set to false if we're leaving the container (not entering a child)
+    const relatedTarget = e.relatedTarget as Node | null;
+    if (!e.currentTarget.contains(relatedTarget)) {
+      setIsNativeDragOver(false);
     }
-  };
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      setIsNativeDragOver(false);
+
+      const mealData = e.dataTransfer.getData("application/json");
+      if (mealData) {
+        try {
+          const meal = JSON.parse(mealData) as Meal;
+          onDropMeal(category.id, meal);
+        } catch (err) {
+          console.error("Failed to parse meal data:", err);
+        }
+      }
+    },
+    [category.id, onDropMeal]
+  );
+
+  // Combine both dnd-kit and native drag states for visual feedback
+  const isDragOver = isOver || isNativeDragOver;
 
   return (
     <div
+      ref={setNodeRef}
+      onDragOver={handleDragOver}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
       className={`bg-gray-800 rounded-xl p-4 transition-all duration-300 min-h-[200px] relative ${
         isDragOver ? "ring-2 ring-blue-400 bg-gray-700" : ""
       }`}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
     >
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-white font-semibold text-lg">{category.name}</h3>
@@ -72,13 +95,12 @@ export const MealCategory: React.FC<MealCategoryProps> = ({
             meal={meal}
             categoryId={category.id}
             onRemoveMeal={onRemoveMeal}
-            onDragStart={onDragStart}
           />
         ))}
 
         {category.meals.length === 0 && (
           <div className="col-span-1 bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg p-8 flex items-center justify-center text-gray-400 text-sm hover:border-gray-500 transition-colors duration-200">
-            Drop meals here
+            {isDragOver ? "Drop here!" : "Drop meals here"}
           </div>
         )}
       </div>
